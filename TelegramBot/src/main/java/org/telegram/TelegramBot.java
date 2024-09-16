@@ -35,7 +35,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "gleb":
                     message.setText("sorry bro");
                     break;
-                case "ТЫ СКАЗАЛ ЧТО ТЫ ШАРИШ В ЭТОЙ ТЕБЕ ТЫ":
+                case "Пока(":
                     message.setText("блин");
                     break;
                 default:
@@ -57,7 +57,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         List<KeyboardRow> keyboardRowList = new ArrayList<>();
         KeyboardRow keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add(new KeyboardButton("ТЫ СКАЗАЛ ЧТО ТЫ ШАРИШ В ЭТОЙ ТЕБЕ ТЫ"));
+        keyboardFirstRow.add(new KeyboardButton("Пока("));
 
         KeyboardRow keyboardSecondRow = new KeyboardRow();
         // Добавляем кнопки во вторую строчку клавиатуры
