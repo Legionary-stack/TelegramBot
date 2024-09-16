@@ -28,6 +28,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         setButtons(message);
         try {
             switch (text) {
+                //тестовый комментарий
                 case "/start":
                     message.setText("ты текст текст");
                     break;
