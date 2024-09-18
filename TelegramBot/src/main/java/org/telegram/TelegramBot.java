@@ -35,7 +35,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "gleb":
                     message.setText("sorry bro");
                     break;
-                case "ТЫ СКАЗАЛ ЧТО ТЫ ШАРИШ В ЭТОЙ ТЕБЕ ТЫ":
+                case "умиротворение":
                     message.setText("блин");
                     break;
                 default:
