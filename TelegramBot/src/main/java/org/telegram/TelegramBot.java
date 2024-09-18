@@ -8,8 +8,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.telegram.GetToken.getToken;
 
 
 public class TelegramBot extends TelegramLongPollingBot {
@@ -72,7 +75,11 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "6761562683:AAFUfFQEFgWGVJuX9aah028Svsz2rccZ54I";
+        try {
+            return getToken();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
