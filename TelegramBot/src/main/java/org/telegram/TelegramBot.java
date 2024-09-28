@@ -1,26 +1,20 @@
 package org.telegram;
 
+import org.telegram.Enums.BotState;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.Сharacters.Person;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import static org.telegram.Keyboards.*;
 import static org.telegram.GetToken.getToken;
 
-
 public class TelegramBot extends TelegramLongPollingBot {
-    public enum BotState {
-        WAITING_FOR_COMMAND, COLLECTING_NAME, FINISHED
-    }
 
     private BotState currentState = BotState.WAITING_FOR_COMMAND;
     private final Map<Long, BotState> userStates = new HashMap<>();
@@ -85,14 +79,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         Person person = userPersons.get(chatId);
         String text = person == null ? "ты никто" : String.format(
                 "Ты: %s.\nТвой уровень: %s \nТвой интеллект: %s, твоя сила: %s\n" +
-                        "твоя ловкость: %s, твоя живучесть: %s\n"+
+                        "твоя ловкость: %s, твоя живучесть: %s\n" +
                         "Очки здоровья: %s/%s\nОчки маны: %s/%s",
-                person.getName(), person.getLevel(),person.getIntelligence(), person.getStrength(),
-                person.getAgility(), person.getVitality(),person.getCurrentHealthPoints(),
-                person.getMaxHealthPoints(),person.getCurrentManaPoints(), person.getMaxManaPoints());
-        sendMessage(chatId, text);
+                person.getName(), person.getLevel(), person.getIntelligence(), person.getStrength(),
+                person.getAgility(), person.getVitality(), person.getCurrentHealthPoints(),
+                person.getMaxHealthPoints(), person.getCurrentManaPoints(), person.getMaxManaPoints());
         userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
-
+        sendMessage(chatId, text);
     }
 
     private void sendMessage(long chatId, String text) {
@@ -106,30 +99,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             System.out.println("oshibks");
             e.printStackTrace();
         }
-    }
-
-    public synchronized void setButtons(SendMessage message) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        message.setReplyMarkup(replyKeyboardMarkup);
-
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-
-        List<KeyboardRow> keyboardRowList = new ArrayList<>();
-        KeyboardRow keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add(new KeyboardButton("кто я"));
-
-        KeyboardRow keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add(new KeyboardButton("/start"));
-        KeyboardRow keyboardThirdRow = new KeyboardRow();
-        keyboardThirdRow.add(new KeyboardButton("увеличить живучесть на 10"));
-        // Добавляем все строчки клавиатуры в список
-        keyboardRowList.add(keyboardFirstRow);
-        keyboardRowList.add(keyboardSecondRow);
-        keyboardRowList.add(keyboardThirdRow);
-        // и устанваливаем этот список нашей клавиатуре
-        replyKeyboardMarkup.setKeyboard(keyboardRowList);
     }
 
     @Override
