@@ -1,11 +1,12 @@
 package org.telegram;
 
-import org.telegram.Enums.BotState;
+import org.telegram.enums.BotState;
+import org.telegram.enums.KeyboardState;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.Сharacters.Person;
+import org.telegram.characters.Person;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,10 +16,11 @@ import static org.telegram.Keyboards.*;
 import static org.telegram.GetToken.getToken;
 
 public class TelegramBot extends TelegramLongPollingBot {
-
+    private Keyboards Keyboards = new Keyboards();
     private BotState currentState = BotState.WAITING_FOR_COMMAND;
     private final Map<Long, BotState> userStates = new HashMap<>();
     private final Map<Long, Person> userPersons = new HashMap<>();
+
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -33,7 +35,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
         System.out.println(userPersons.get(chatId) + " " + chatId + " " + text);
 
-        setButtons(message);
+        Keyboards.setButtons(message);
         switch (currentState) {
             case WAITING_FOR_COMMAND:
                 handleCommand(update, chatId);
@@ -92,7 +94,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
-        setButtons(message);
+        Keyboards.setButtons(message);
         try {
             this.execute(message);
         } catch (TelegramApiException e) {

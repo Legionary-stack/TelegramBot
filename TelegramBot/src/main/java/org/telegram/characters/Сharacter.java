@@ -1,4 +1,4 @@
-package org.telegram.Сharacters;
+package org.telegram.characters;
 
 public class Сharacter {
     protected String name;

@@ -10,11 +10,11 @@ import java.util.List;
 
 public class Keyboards {
 
-    public static void setMainGameMenu(SendMessage message) {
+    public void setMainGameMenu(SendMessage message) {
 
     }
 
-    public static void setButtons(SendMessage message) {
+    public void setButtons(SendMessage message) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         message.setReplyMarkup(replyKeyboardMarkup);
 

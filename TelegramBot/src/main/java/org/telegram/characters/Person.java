@@ -1,4 +1,4 @@
-package org.telegram.Сharacters;
+package org.telegram.characters;
 
 public class Person extends Сharacter {
     private long chatId;

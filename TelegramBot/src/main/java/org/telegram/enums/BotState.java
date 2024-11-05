@@ -1,4 +1,4 @@
-package org.telegram.Enums;
+package org.telegram.enums;
 
 public enum BotState {
     WAITING_FOR_COMMAND,
