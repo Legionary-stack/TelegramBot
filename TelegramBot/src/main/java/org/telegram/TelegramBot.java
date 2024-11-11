@@ -4,7 +4,9 @@ import org.telegram.enums.BotState;
 import org.telegram.enums.KeyboardState;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.characters.Person;
 
@@ -12,7 +14,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.telegram.Keyboards.*;
 import static org.telegram.GetToken.getToken;
 
 public class TelegramBot extends TelegramLongPollingBot {
@@ -30,12 +31,17 @@ public class TelegramBot extends TelegramLongPollingBot {
         message.setChatId(String.valueOf(chatId));
         currentState = userStates.getOrDefault(chatId, BotState.WAITING_FOR_COMMAND);
 
+
         if (userPersons.get(chatId) != null) {
-            System.out.print(userPersons.get(chatId).getName());
+            System.out.print(userPersons.get(chatId).getName() + " ");
         }
         System.out.println(userPersons.get(chatId) + " " + chatId + " " + text);
 
-        Keyboards.setButtons(message);
+        if (update.hasCallbackQuery())
+        {
+            //TODO что??? что туду
+        }
+       // Keyboards.setButtons(message);
         switch (currentState) {
             case WAITING_FOR_COMMAND:
                 handleCommand(update, chatId);
@@ -49,6 +55,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
     }
+
 
     private void handleCommand(Update update, long chatId) {
         // Логика обработки команды
@@ -95,6 +102,11 @@ public class TelegramBot extends TelegramLongPollingBot {
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
         Keyboards.setButtons(message);
+        //message.setReplyMarkup(Keyboards.getInlineInventory());
+        //message.setReplyMarkup(Keyboards.getInlineAboutMyself());
+       // message.setReplyMarkup(Keyboards.getInlineStore());
+        message.setReplyMarkup(Keyboards.getInlineMeditation());
+
         try {
             this.execute(message);
         } catch (TelegramApiException e) {
@@ -102,6 +114,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public String getBotToken() {
