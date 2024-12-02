@@ -1,5 +1,8 @@
 package org.telegram;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.validation.constraints.NotNull;
 import java.sql.*;
 
 public class DataBase {
@@ -73,12 +76,13 @@ public class DataBase {
     public void userStatsPostFull(long chatId, boolean add,
                                     String userName, Integer level, Integer currentHealthPoints,
                                     Integer currentManaPoints, Integer currentExpPoints, Integer strength,
-                                    Integer intelligence, Integer agility, Integer vitality, String play_class) {
+                                    Integer intelligence, Integer agility, Integer vitality,
+                                  String play_class, String pic) {
 
         Integer thisObjUserId = getIdByChatId(chatId);
         String sql = "INSERT INTO userStats(userId, userName, level, currentHealthPoints, currentManaPoints, " +
-                "currentExpPoints, strength, intelligence, agility, vitality, class) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "currentExpPoints, strength, intelligence, agility, vitality, class, pic) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -95,6 +99,7 @@ public class DataBase {
             pstmt.setInt(9, agility);
             pstmt.setInt(10, vitality);
             pstmt.setString(11, play_class);
+            pstmt.setString(12, pic);
 
             pstmt.executeUpdate();
             System.out.println("Запись добавлена в таблицу userStats.");
@@ -104,32 +109,85 @@ public class DataBase {
         }
     }
 
-    public void userStatsDeleteFull(long chatId, boolean add) {
+//    public void userStatsDeleteFull(long chatId, boolean add) {
+//
+//        Integer thisObjUserId = getIdByChatId(chatId);
+//        String sql = "DELETE FROM userStats WHERE userId = ?";
+//
+//        try (Connection conn = connect();
+//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//
+//            pstmt.setInt(1, thisObjUserId);
+//            pstmt.executeUpdate();
+//            System.out.println("Запись удалена из таблицы userStats.");
+//
+//        } catch (SQLException e) {
+//            System.out.println("Ошибка при удалении записи userId " + thisObjUserId + " : " + e.getMessage());
+//        }
+//    }
+//
+//    public void userStatsGetInfo(long chatId) {
+//        Integer thisObjUserId = getIdByChatId(chatId);
+//
+//        if (thisObjUserId == null) {
+//            System.out.println("UserId не найден для chatId: " + chatId);
+//            return;
+//        }
+//
+//        String sql = "SELECT * FROM userStats WHERE userId = ?";
+//
+//        try (Connection conn = connect();
+//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//
+//            pstmt.setInt(1, thisObjUserId);
+//            ResultSet rs = pstmt.executeQuery();
+//
+//            // Извлечение данных из результата запроса
+//            if (rs.next()) {
+//                int userId = rs.getInt("userId");
+//                String userName = rs.getString("userName");
+//                int level = rs.getInt("level");
+//                int currentHealthPoints = rs.getInt("currentHealthPoints");
+//                int currentManaPoints = rs.getInt("currentManaPoints");
+//                int currentExpPoints = rs.getInt("currentExpPoints");
+//                int strength = rs.getInt("strength");
+//                int intelligence = rs.getInt("intelligence");
+//                int agility = rs.getInt("agility");
+//                int vitality = rs.getInt("vitality");
+//                String userClass = rs.getString("class");
+//
+//                // Вывод информации о пользователе
+//                /*
+//                System.out.println("UserId: " + userId);
+//                System.out.println("UserName: " + userName);
+//                System.out.println("Level: " + level);
+//                System.out.println("Current Health Points: " + currentHealthPoints);
+//                System.out.println("Current Mana Points: " + currentManaPoints);
+//                System.out.println("Current Exp Points: " + currentExpPoints);
+//                System.out.println("Strength: " + strength);
+//                System.out.println("Intelligence: " + intelligence);
+//                System.out.println("Agility: " + agility);
+//                System.out.println("Vitality: " + vitality);
+//                System.out.println("Class: " + userClass);*/
+//            } else {
+//                System.out.println("Запись не найдена для userId: " + thisObjUserId);
+//            }
+//
+//        } catch (SQLException e) {
+//            System.out.println("Ошибка при извлечении данных: " + e.getMessage());
+//        }
+//    }
 
-        Integer thisObjUserId = getIdByChatId(chatId);
-        String sql = "DELETE FROM userStats WHERE userId = ?";
-
-        try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, thisObjUserId);
-            pstmt.executeUpdate();
-            System.out.println("Запись удалена из таблицы userStats.");
-
-        } catch (SQLException e) {
-            System.out.println("Ошибка при удалении записи userId " + thisObjUserId + " : " + e.getMessage());
-        }
-    }
-
-    public void userStatsGetInfo(long chatId) {
+    public Map<String, Object> userStatsGetInfo(long chatId) {
         Integer thisObjUserId = getIdByChatId(chatId);
 
         if (thisObjUserId == null) {
             System.out.println("UserId не найден для chatId: " + chatId);
-            return;
+            return null; // Возвращаем null, если пользователь не найден
         }
 
         String sql = "SELECT * FROM userStats WHERE userId = ?";
+        Map<String, Object> userInfo = new HashMap<>();
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -139,45 +197,36 @@ public class DataBase {
 
             // Извлечение данных из результата запроса
             if (rs.next()) {
-                int userId = rs.getInt("userId");
-                String userName = rs.getString("userName");
-                int level = rs.getInt("level");
-                int currentHealthPoints = rs.getInt("currentHealthPoints");
-                int currentManaPoints = rs.getInt("currentManaPoints");
-                int currentExpPoints = rs.getInt("currentExpPoints");
-                int strength = rs.getInt("strength");
-                int intelligence = rs.getInt("intelligence");
-                int agility = rs.getInt("agility");
-                int vitality = rs.getInt("vitality");
-                String userClass = rs.getString("class");
-
-                // Вывод информации о пользователе
-                /*
-                System.out.println("UserId: " + userId);
-                System.out.println("UserName: " + userName);
-                System.out.println("Level: " + level);
-                System.out.println("Current Health Points: " + currentHealthPoints);
-                System.out.println("Current Mana Points: " + currentManaPoints);
-                System.out.println("Current Exp Points: " + currentExpPoints);
-                System.out.println("Strength: " + strength);
-                System.out.println("Intelligence: " + intelligence);
-                System.out.println("Agility: " + agility);
-                System.out.println("Vitality: " + vitality);
-                System.out.println("Class: " + userClass);*/
+                userInfo.put("userId", rs.getInt("userId"));
+                userInfo.put("userName", rs.getString("userName"));
+                userInfo.put("level", rs.getInt("level"));
+                userInfo.put("currentHealthPoints", rs.getInt("currentHealthPoints"));
+                userInfo.put("currentManaPoints", rs.getInt("currentManaPoints"));
+                userInfo.put("currentExpPoints", rs.getInt("currentExpPoints"));
+                userInfo.put("strength", rs.getInt("strength"));
+                userInfo.put("intelligence", rs.getInt("intelligence"));
+                userInfo.put("agility", rs.getInt("agility"));
+                userInfo.put("vitality", rs.getInt("vitality"));
+                userInfo.put("class", rs.getString("class"));
+                userInfo.put("pic", rs.getString("pic"));
             } else {
                 System.out.println("Запись не найдена для userId: " + thisObjUserId);
+                return null; // Возвращаем null, если запись не найдена
             }
 
         } catch (SQLException e) {
             System.out.println("Ошибка при извлечении данных: " + e.getMessage());
+            return null; // Возвращаем null в случае ошибки
         }
+
+        return userInfo; // Возвращаем собранную информацию
     }
 
     // Метод для проверки допустимости имени столбца
     private boolean isValidColumn(String column) {
         // Список допустимых имен столбцов
         String[] validColumns = {"userName", "level", "currentHealthPoints", "currentManaPoints", "currentExpPoints",
-                "strength", "intelligence", "agility", "vitality", "class"};
+                "strength", "intelligence", "agility", "vitality", "class", "pic"};
         for (String validColumn : validColumns) {
             if (validColumn.equals(column)) {
                 return true;
@@ -187,7 +236,7 @@ public class DataBase {
     }
 
     // Метод для обновления значения в таблице userStats
-    public void userStatsPathOnePunch(long chatId, String changeColumn, Object changeValue) {
+    public void userStatsPathOnePunch( long chatId, String changeColumn, Object changeValue) {
         Integer thisObjUserId = getIdByChatId(chatId);
 
         if (changeValue == null) {

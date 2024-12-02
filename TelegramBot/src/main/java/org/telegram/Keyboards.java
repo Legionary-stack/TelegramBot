@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Keyboards {
@@ -228,4 +229,66 @@ public class Keyboards {
         replyKeyboardMarkup.setKeyboard(keyboardRowList);
     }
 
+    public InlineKeyboardMarkup getConfirmationKeyboard() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+
+        InlineKeyboardButton confirmationButton = new InlineKeyboardButton();
+        confirmationButton.setText("\u2705"); // \u2705 is the Unicode for the green check mark
+        confirmationButton.setCallbackData("confirm_registration");
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(confirmationButton);
+        buttons.add(row);
+
+        markup.setKeyboard(buttons);
+        return markup;
+    }
+
+    public InlineKeyboardMarkup getClassSelectionKeyboard() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+
+        InlineKeyboardButton wizardButton = new InlineKeyboardButton();
+        wizardButton.setText("Колдун");
+        wizardButton.setCallbackData("select_wizard");
+
+        InlineKeyboardButton butcherButton = new InlineKeyboardButton();
+        butcherButton.setText("Мясник");
+        butcherButton.setCallbackData("select_butcher");
+
+        InlineKeyboardButton archerButton = new InlineKeyboardButton();
+        archerButton.setText("Лучник");
+        archerButton.setCallbackData("select_archer");
+
+        buttons.add(Arrays.asList(wizardButton, butcherButton, archerButton));
+        markup.setKeyboard(buttons);
+        return markup;
+    }
+
+    public ReplyKeyboardMarkup getMainGameMenuKeyboard() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        List<KeyboardRow> keyboardRowList = new ArrayList<>();
+        KeyboardRow keyboardFirstRow = new KeyboardRow();
+        keyboardFirstRow.add(new KeyboardButton("Арена"));
+
+        KeyboardRow keyboardSecondRow = new KeyboardRow();
+        keyboardSecondRow.add(new KeyboardButton("Инвентарь"));
+        keyboardSecondRow.add(new KeyboardButton("Магазин"));
+
+        KeyboardRow keyboardThirdRow = new KeyboardRow();
+        keyboardThirdRow.add(new KeyboardButton("О себе"));
+        keyboardThirdRow.add(new KeyboardButton("Медитация"));
+
+        keyboardRowList.add(keyboardFirstRow);
+        keyboardRowList.add(keyboardSecondRow);
+        keyboardRowList.add(keyboardThirdRow);
+
+        replyKeyboardMarkup.setKeyboard(keyboardRowList);
+        return replyKeyboardMarkup;
+    }
 }
