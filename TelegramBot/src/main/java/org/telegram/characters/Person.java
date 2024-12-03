@@ -27,6 +27,7 @@ public class Person extends Сharacter {
         vitality += count;
         riseUpdate();
     }
+
     public long getChatId() {
         return chatId;
     }
@@ -41,6 +42,24 @@ public class Person extends Сharacter {
 
     public void setSkillPoints(int skillPoints) {
         this.skillPoints = skillPoints;
+    }
+
+    public void attack(Person opponent) {
+        int damage = this.strength - opponent.getDefense();
+        if (damage > 0) {
+            opponent.takeDamage(damage);
+        }
+    }
+
+    public void takeDamage(int damage) {
+        this.currentHealthPoints -= damage;
+        if (this.currentHealthPoints < 0) {
+            this.currentHealthPoints = 0;
+        }
+    }
+
+    public int getDefense() {
+        return this.agility; // Example: using agility as defense
     }
 
 
