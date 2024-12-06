@@ -63,6 +63,46 @@ public class Keyboards {
         return replyKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getStatUpgrade() {
+
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        List<InlineKeyboardButton> buttons1 = new ArrayList<>();
+
+        InlineKeyboardButton plus_strength = new InlineKeyboardButton();
+        plus_strength.setText("+1 к силе");
+        plus_strength.setCallbackData("plus_strength");
+
+        InlineKeyboardButton plus_vitality = new InlineKeyboardButton();
+        plus_vitality.setText("+1 к живучести");
+        plus_vitality.setCallbackData("plus_vitality");
+
+        InlineKeyboardButton plus_intelligence = new InlineKeyboardButton();
+        plus_intelligence.setText("+1 к интеллекту");
+        plus_intelligence.setCallbackData("plus_intelligence");
+
+        InlineKeyboardButton plus_agility = new InlineKeyboardButton();
+        plus_agility.setText("+1 к ловкости");
+        plus_agility.setCallbackData("plus_agility");
+
+        buttons1.add(plus_strength);
+        buttons1.add(plus_vitality);
+        buttons1.add(plus_intelligence);
+        buttons1.add(plus_agility);
+
+        List<InlineKeyboardButton> buttons2 = new ArrayList<>();
+        InlineKeyboardButton goBack = new InlineKeyboardButton();
+        goBack.setText("Назад");
+        goBack.setCallbackData("go_back");
+
+        buttons2.add(goBack);
+        buttons.add(buttons1);
+        buttons.add(buttons2);
+
+        InlineKeyboardMarkup markupKeyboard = new InlineKeyboardMarkup();
+        markupKeyboard.setKeyboard(buttons);
+        return markupKeyboard;
+    }
+
     public InlineKeyboardMarkup getInlineInventory() {
 
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
@@ -290,7 +330,6 @@ public class Keyboards {
     }
 
 
-
     public InlineKeyboardMarkup getBattleActionKeyboard() {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
@@ -303,7 +342,12 @@ public class Keyboards {
         defendButton.setText("Защищаться");
         defendButton.setCallbackData("defend");
 
+        InlineKeyboardButton goBack = new InlineKeyboardButton();
+        goBack.setText("Назад");
+        goBack.setCallbackData("go_back");
+
         buttons.add(Arrays.asList(attackButton, defendButton));
+        buttons.add(List.of(goBack));
         markup.setKeyboard(buttons);
         return markup;
     }

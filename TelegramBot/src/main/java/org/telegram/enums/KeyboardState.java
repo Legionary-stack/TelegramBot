@@ -3,5 +3,6 @@ package org.telegram.enums;
 public enum KeyboardState {
     NONE,
     MAIN_GAME_MENU,
-    REGISTRATION
+    REGISTRATION,
+    STAT_UPGRADE
 }

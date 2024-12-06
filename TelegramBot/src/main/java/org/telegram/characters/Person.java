@@ -14,23 +14,32 @@ public class Person extends Сharacter {
     public Person(String name, long chatId) {
         super(name);
         this.chatId = chatId;
-        strength = 10;
-        intelligence = 10;
-        agility = 10;
+        strength = 15;
+        intelligence = 15;
+        agility = 15;
         vitality = 10;
-        skillPoints = 0;
+        skillPoints = 3;
         currentExperiencePoints = 0;
         riseUpdate();
     }
 
     private void riseUpdate() {
-        maxHealthPoints = vitality * 20;
+        maxHealthPoints = vitality * 10;
         maxManaPoints = intelligence * 10;
         currentHealthPoints = maxHealthPoints;
         currentManaPoints = maxManaPoints;
-        maxExperiencePoints = level * 1000;
+        maxExperiencePoints = calculateMaxExperiencePoints();
     }
 
+    private int calculateMaxExperiencePoints() {
+        return (int) (1000 * Math.pow(1.5, level - 1));
+    }
+
+    public void revive() {
+        //TODO нужна другая реализация а вообще она вовсе не нужна
+        riseUpdate();
+
+    }
 
     private void levelUpdate() {
         level += 1;
@@ -74,12 +83,12 @@ public class Person extends Сharacter {
     }
 
     public double calculateCriticalHitChance() {
-        return agility / 100.0;
+        return Math.min(0.5, agility / 150.0);
     }
 
     public double calculateCriticalDamage(double baseDamage) {
         // Урон критического удара
-        return baseDamage * (1 + (agility * 1.5) / 100.0);
+        return baseDamage * (1 + (agility * (1.5 + (double) level / 10)) / 100.0);
     }
 
     public int getDamage(@NotNull Enemy opponent) {
@@ -87,12 +96,16 @@ public class Person extends Сharacter {
         double criticalChance = calculateCriticalHitChance();
         boolean isCriticalHit = random.nextDouble() < criticalChance;
 
-        double missChance = (double) 100 / (this.agility * 3);
+        double missChance = Math.min(0.4, (double) (agility) / (10 * level)
+                - opponent.getAgility() / (20.0 * opponent.level));
+
         double randomValue = random.nextDouble();
+        System.out.println(missChance);
+        System.out.println(randomValue);
         boolean isHit = randomValue > missChance;
 
-        int baseDamage = (int) (this.strength * (Math.exp((double) -opponent.getDefense() /
-                (this.level * 4 + 225)) + 0.01 * this.level));
+        int baseDamage = (int) (strength * (Math.exp((double) -opponent.getDefense() /
+                (level * 4 + 225)) + 0.01 * level));
 
         return isHit ? (isCriticalHit ? (int)
                 calculateCriticalDamage(baseDamage) : baseDamage) : 0;
@@ -106,7 +119,7 @@ public class Person extends Сharacter {
     }
 
     public int getDefense() {
-        return this.agility; // Example: using agility as defense
+        return (int) ((this.agility + this.vitality) / 1.8);
     }
 
 
@@ -124,6 +137,31 @@ public class Person extends Сharacter {
 
     public void setMaxExperiencePoints(int maxExperiencePoints) {
         this.maxExperiencePoints = maxExperiencePoints;
+    }
+
+    public boolean riseStat(String type) {
+        if (skillPoints > 0)
+            skillPoints -= 1;
+        else
+            return false;
+
+        switch (type) {
+            case "strength":
+                setStrength(getStrength() + 1);
+                break;
+            case "intelligence":
+                setIntelligence(getIntelligence() + 1);
+                riseUpdate();
+                break;
+            case "agility":
+                setAgility(getAgility() + 1);
+                break;
+            case "vitality":
+                setVitality(getVitality() + 1);
+                riseUpdate();
+                break;
+        }
+        return true;
     }
 }
 

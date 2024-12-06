@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -154,7 +155,20 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
                 break;
             case "О себе":
+                keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
                 getInformationAboutPerson(chatId);
+                break;
+            case "Медитация":
+                keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
+                if (userPersons.get(chatId) != null) {
+                    userPersons.get(chatId).revive();
+                    sendMessage(chatId, "HP восстановлено ");
+                }
+                break;
+            case "Инвентарь":
+                keyboardStates.put(chatId, KeyboardState.STAT_UPGRADE);
+                sendMessage(chatId, "Инвентарь пока не реализован," +
+                        "но вы можете улучшить статы");
                 break;
         }
     }
@@ -197,7 +211,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         String userName = callbackQuery.getFrom().getFirstName();
         String picture = "";
         String promt = "";
-        String play_class = "";
+        String play_class = null;
 
         switch (callbackData) {
             case "select_wizard":
@@ -216,9 +230,53 @@ public class TelegramBot extends TelegramLongPollingBot {
             case "defend":
                 Battle(callbackQuery);
                 return;
-            //break;
-            // Другие случаи
+            case "plus_strength":
+                if (userPersons.get(chatId) != null)
+                    if (!userPersons.get(chatId).riseStat("strength")) {
+                        sendMessage(chatId, "Недостаточно очков");
+                        break;
+                    }
+                sendMessage(chatId, "Сила повышена");
+                break;
+            case "plus_vitality":
+                if (userPersons.get(chatId) != null)
+                    if (!userPersons.get(chatId).riseStat("vitality")) {
+                        sendMessage(chatId, "Недостаточно очков");
+                        break;
+                    }
+                sendMessage(chatId, "Живучесть повышена");
+                break;
+            case "plus_intelligence":
+                if (userPersons.get(chatId) != null)
+                    if (!userPersons.get(chatId).riseStat("intelligence")) {
+                        sendMessage(chatId, "Недостаточно очков");
+                        break;
+                    }
+                sendMessage(chatId, "Интеллект повышен");
+                break;
+            case "plus_agility":
+                if (userPersons.get(chatId) != null)
+                    if (!userPersons.get(chatId).riseStat("agility")) {
+                        sendMessage(chatId, "Недостаточно очков");
+                        break;
+                    }
+                sendMessage(chatId, "Ловкость повышена");
+                break;
+            case "go_back":
+                keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
+                userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
+                sendMessage(chatId, "Главное меню");
+                break;
         }
+        if (play_class != null) {
+            registrationUser(chatId, promt, userName, play_class);
+        }
+
+    }
+
+    private void registrationUser(long chatId, String promt, String userName,
+                                  String play_class) {
+        String picture = "";
         try {
             System.out.println("Попытка создания фото");
             sendMessage(chatId, "Пытаемся создать фото... " +
@@ -250,6 +308,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 100,
                 play_class,
                 picture);
+
     }
 
     private void aproved_registr(long chatId) {
@@ -312,7 +371,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     sendMessage(chatId, "Начислено " + exp + " опыта");
                     player.setCurrentExperiencePoints(player.getCurrentExperiencePoints() + exp);
                     if (player.expUpdate()) {
-                        sendMessage(chatId,"Новый уровень! Текущий уровень равен " +
+                        sendMessage(chatId, "Новый уровень! Текущий уровень равен " +
                                 player.getLevel());
                     }
                     userPersons.put(chatId, player);
@@ -370,11 +429,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                         твоя ловкость: %s, твоя живучесть: %s
                         Очки здоровья: %s/%s
                         Очки маны: %s/%s
-                        Шкала опыта: %s/%s""",
+                        Шкала опыта: %s/%s
+                        Очки улучшения: %s""",
                 person.getName(), person.getLevel(), person.getIntelligence(), person.getStrength(),
                 person.getAgility(), person.getVitality(), person.getCurrentHealthPoints(),
                 person.getMaxHealthPoints(), person.getCurrentManaPoints(), person.getMaxManaPoints(),
-                person.getCurrentExperiencePoints(), person.getMaxExperiencePoints());
+                person.getCurrentExperiencePoints(), person.getMaxExperiencePoints(),
+                person.getSkillPoints());
         userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
         sendMessage(chatId, text);
     }
@@ -420,7 +481,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         //message.setReplyMarkup(Keyboards.getInlineAboutMyself());
         //message.setReplyMarkup(Keyboards.getInlineStore());
         // //message.setReplyMarkup(Keyboards.getInlineMeditation());
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        ReplyKeyboardMarkup replyKeyboardMarkup = null;
+        InlineKeyboardMarkup inlineKeyboardMarkup = null;
         switch (keyboardStates.get(chatId)) {
             case REGISTRATION:
                 replyKeyboardMarkup = Keyboards.setRegistration();
@@ -430,8 +492,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
             case NONE:
                 replyKeyboardMarkup = Keyboards.clearKeyboard();
+            case STAT_UPGRADE:
+                inlineKeyboardMarkup = Keyboards.getStatUpgrade();
         }
-        message.setReplyMarkup(replyKeyboardMarkup);
+        if (replyKeyboardMarkup != null)
+            message.setReplyMarkup(replyKeyboardMarkup);
+        else if (inlineKeyboardMarkup != null)
+            message.setReplyMarkup(inlineKeyboardMarkup);
+
         try {
             this.execute(message);
         } catch (TelegramApiException e) {
@@ -460,7 +528,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "miklejordan228_bot";
+        return "eshkere2281337_bot";
     }
 }
 

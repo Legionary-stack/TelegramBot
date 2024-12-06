@@ -1,4 +1,5 @@
 package org.telegram;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -16,7 +17,7 @@ public class ImageGenerator {
             );
 
             processBuilder.directory(new File(
-                    "TelegramBot/TelegramBot/src/main/java/org/telegram/py_file"
+                            "TelegramBot/TelegramBot/src/main/java/org/telegram/py_file"
                     )
             );
 

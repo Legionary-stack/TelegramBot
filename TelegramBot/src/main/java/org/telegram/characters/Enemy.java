@@ -19,7 +19,7 @@ public class Enemy extends Сharacter {
     }
 
     private void riseUpdate() {
-        maxHealthPoints = vitality * 20;
+        maxHealthPoints = vitality * 10;
         maxManaPoints = intelligence * 10;
         currentHealthPoints = maxHealthPoints;
         currentManaPoints = maxManaPoints;
@@ -30,7 +30,8 @@ public class Enemy extends Сharacter {
     }
 
     public int getDamage(@NotNull Person player) {
-        double missChance = (double) 100 / (this.agility * 2);
+        double missChance = Math.min(0.6, (double) (this.agility) / (10 * this.level)
+                - player.getAgility() / (20.0 * player.level));
         Random random = new Random();
         double randomValue = random.nextDouble();
         boolean isHit = randomValue > missChance;
@@ -47,7 +48,7 @@ public class Enemy extends Сharacter {
     }
 
     public int getDefense() {
-        return this.agility;
+        return (int) ((this.agility + this.vitality) / 1.8);
     }
 
 }
