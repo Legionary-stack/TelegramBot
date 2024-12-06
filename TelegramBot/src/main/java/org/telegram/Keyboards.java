@@ -13,10 +13,15 @@ import java.util.List;
 
 public class Keyboards {
 
-    public void setMainGameMenu(SendMessage message) {
+    public ReplyKeyboardMarkup clearKeyboard() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        message.setReplyMarkup(replyKeyboardMarkup);
 
+        replyKeyboardMarkup.setKeyboard(new ArrayList<>());
+        return replyKeyboardMarkup;
+    }
+
+    public ReplyKeyboardMarkup getMainGameMenu() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(false);
@@ -31,13 +36,31 @@ public class Keyboards {
 
         KeyboardRow keyboardThirdRow = new KeyboardRow();
         keyboardThirdRow.add(new KeyboardButton("О себе"));
-        keyboardThirdRow.add(new KeyboardButton("Медетация"));
+        keyboardThirdRow.add(new KeyboardButton("Медитация"));
 
         keyboardRowList.add(keyboardFirstRow);
         keyboardRowList.add(keyboardSecondRow);
         keyboardRowList.add(keyboardThirdRow);
 
         replyKeyboardMarkup.setKeyboard(keyboardRowList);
+        return replyKeyboardMarkup;
+    }
+
+
+    public ReplyKeyboardMarkup setRegistration() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        List<KeyboardRow> keyboardRowList = new ArrayList<>();
+        KeyboardRow keyboardFirstRow = new KeyboardRow();
+        keyboardFirstRow.add(new KeyboardButton("/start"));
+
+        keyboardRowList.add(keyboardFirstRow);
+        replyKeyboardMarkup.setKeyboard(keyboardRowList);
+        return replyKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup getInlineInventory() {
@@ -266,29 +289,22 @@ public class Keyboards {
         return markup;
     }
 
-    public ReplyKeyboardMarkup getMainGameMenuKeyboard() {
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
 
-        List<KeyboardRow> keyboardRowList = new ArrayList<>();
-        KeyboardRow keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add(new KeyboardButton("Арена"));
 
-        KeyboardRow keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add(new KeyboardButton("Инвентарь"));
-        keyboardSecondRow.add(new KeyboardButton("Магазин"));
+    public InlineKeyboardMarkup getBattleActionKeyboard() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
 
-        KeyboardRow keyboardThirdRow = new KeyboardRow();
-        keyboardThirdRow.add(new KeyboardButton("О себе"));
-        keyboardThirdRow.add(new KeyboardButton("Медитация"));
+        InlineKeyboardButton attackButton = new InlineKeyboardButton();
+        attackButton.setText("Атаковать");
+        attackButton.setCallbackData("attack");
 
-        keyboardRowList.add(keyboardFirstRow);
-        keyboardRowList.add(keyboardSecondRow);
-        keyboardRowList.add(keyboardThirdRow);
+        InlineKeyboardButton defendButton = new InlineKeyboardButton();
+        defendButton.setText("Защищаться");
+        defendButton.setCallbackData("defend");
 
-        replyKeyboardMarkup.setKeyboard(keyboardRowList);
-        return replyKeyboardMarkup;
+        buttons.add(Arrays.asList(attackButton, defendButton));
+        markup.setKeyboard(buttons);
+        return markup;
     }
 }

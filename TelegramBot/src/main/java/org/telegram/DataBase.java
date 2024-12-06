@@ -1,4 +1,7 @@
 package org.telegram;
+
+import org.telegram.enums.BotState;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +24,7 @@ public class DataBase {
 
     public void userBaseModify(long chatId, boolean add) {
         /*Функция для создания (add == true) или удаления (add == false) записей в базе данных
-        * по выбранному telegram id = chatId который берется с типом long*/
+         * по выбранному telegram id = chatId который берется с типом long*/
         String sql;
         if (add) {
             sql = "INSERT INTO userBase(chatId) VALUES(?)";
@@ -73,10 +76,15 @@ public class DataBase {
         return id;
     }
 
+    public BotState getStateByChatId(long chatId) {
+        //TODO Реализуй стейты как их брать то емае
+        return null;
+    }
+
     public void userStatsPostFull(long chatId, boolean add,
-                                    String userName, Integer level, Integer currentHealthPoints,
-                                    Integer currentManaPoints, Integer currentExpPoints, Integer strength,
-                                    Integer intelligence, Integer agility, Integer vitality,
+                                  String userName, Integer level, Integer currentHealthPoints,
+                                  Integer currentManaPoints, Integer currentExpPoints, Integer strength,
+                                  Integer intelligence, Integer agility, Integer vitality,
                                   String play_class, String pic) {
 
         Integer thisObjUserId = getIdByChatId(chatId);
@@ -236,7 +244,7 @@ public class DataBase {
     }
 
     // Метод для обновления значения в таблице userStats
-    public void userStatsPathOnePunch( long chatId, String changeColumn, Object changeValue) {
+    public void userStatsPathOnePunch(long chatId, String changeColumn, Object changeValue) {
         Integer thisObjUserId = getIdByChatId(chatId);
 
         if (changeValue == null) {
@@ -268,6 +276,29 @@ public class DataBase {
 
         } catch (SQLException e) {
             System.out.println("Ошибка при обновлении записи: " + e.getMessage());
+        }
+    }
+
+    public void initializeDatabase(DataBase db) {
+        String createUserBaseTable = "CREATE TABLE IF NOT EXISTS userBase" +
+                " (id INTEGER PRIMARY KEY AUTOINCREMENT, chatId BIGINT NOT NULL)";
+        String createUserStatsTable = "CREATE TABLE IF NOT EXISTS userStats" +
+                " (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER UNIQUE NOT NULL," +
+                " userName TEXT NOT NULL, level INTEGER NOT NULL," +
+                " currentHealthPoints INTEGER NOT NULL, currentManaPoints INTEGER NOT NULL," +
+                " currentExpPoints INTEGER NOT NULL, strength INTEGER NOT NULL," +
+                " intelligence INTEGER NOT NULL, agility INTEGER NOT NULL," +
+                " vitality INTEGER NOT NULL," +
+                " class TEXT NOT NULL, pic TEXT)";
+
+        try (Connection conn = db.connect()) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute(createUserBaseTable);
+                stmt.execute(createUserStatsTable);
+                System.out.println("Таблицы успешно созданы или уже существуют.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Ошибка при создании таблиц: " + e.getMessage());
         }
     }
 }

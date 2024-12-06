@@ -2,31 +2,43 @@ package org.telegram;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.telegram.characters.Enemy;
 import org.telegram.enums.BotState;
+import org.telegram.enums.KeyboardState;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
+
 import org.telegram.characters.Person;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import static org.telegram.GetToken.getToken;
-import static org.telegram.GetDefaultPicture.getDefPic;
-import static org.telegram.GetApiKey.getApiKey;
-import static org.telegram.GetSecretKey.getSecret;
+
+import static org.telegram.getters.GetToken.getToken;
+import static org.telegram.getters.GetDefaultPicture.getDefPic;
+import static org.telegram.getters.GetApiKey.getApiKey;
+import static org.telegram.getters.GetSecretKey.getSecret;
 
 public class TelegramBot extends TelegramLongPollingBot {
     private final Keyboards Keyboards = new Keyboards();
     private BotState currentState = BotState.WAITING_FOR_COMMAND;
     private final Map<Long, BotState> userStates = new HashMap<>();
     private final Map<Long, Person> userPersons = new HashMap<>();
+    private final Map<Long, Enemy> enemyPerson = new HashMap<>();
+    private final Map<Long, KeyboardState> keyboardStates = new HashMap<>();
     final String default_pic;
     final String api_key;
     final String secret_key;
@@ -58,8 +70,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final DataBase db;
     private final ImageGenerator image_gen;
 
+
     public TelegramBot() {
         db = new DataBase();
+        db.initializeDatabase(db);
         image_gen = new ImageGenerator();
     }
 
@@ -71,22 +85,33 @@ public class TelegramBot extends TelegramLongPollingBot {
             SendMessage message = new SendMessage();
             message.setChatId(String.valueOf(chatId));
             currentState = userStates.getOrDefault(chatId, BotState.WAITING_FOR_COMMAND);
+            userStates.putIfAbsent(chatId, BotState.REGISTRATION);
+            keyboardStates.putIfAbsent(chatId, KeyboardState.REGISTRATION);
+            System.out.println(userStates.get(chatId));
+            System.out.println(keyboardStates.get(chatId));
             boolean isSuccess = false;
+
 
             if (update.hasCallbackQuery()) {
                 handleCallbackQuery(update.getCallbackQuery());
             } else {
-                switch (currentState) {
+                switch (userStates.get(chatId)) {
+                    case REGISTRATION:
+                        System.out.println("Zashlo");
+                        isSuccess = userRegistration(update, chatId);
+
+                        break;
                     case WAITING_FOR_COMMAND:
-                        isSuccess = handleCommand(update, chatId);
+                        handleCommand(update, chatId);
                         break;
                     case COLLECTING_NAME:
                         collectName(update, chatId);
                         break;
-                    case FINISHED:
-                        notifyRegistrationResult(chatId, isSuccess);
-                        openMainMenu(chatId);
-                        break;
+                    case IN_BATTLE:
+                        if (update.hasCallbackQuery()) {
+                            Battle(update.getCallbackQuery());
+                        }
+
                 }
             }
         } else if (update.hasCallbackQuery()) {
@@ -94,28 +119,44 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private boolean handleCommand(@NotNull Update update, long chatId) {
+    private boolean userRegistration(@NotNull Update update, long chatId) {
         String command = update.getMessage().getText();
         boolean isSuccess = false;
-        switch (command) {
-            case "/start":
-                // Регистрация пользователя в базе данных
-                isSuccess = registerUser(chatId);
-                if (isSuccess) {
-                    userStates.put(chatId, BotState.FINISHED);
-                }
-                // Проверка, есть ли у пользователя класс и картинка
-                if (!hasClassAndImage(chatId)) {
-                    // Если нет, предложить выбор класса
-                    sendClassSelection(chatId);
-                } else {
-                    // Если есть, открыть основное меню
-                    openMainMenu(chatId);
-                }
-                break;
-            // Другие команды
+
+        if (command.equals("/start")) {
+            System.out.println("ADAD");
+            isSuccess = registerUser(chatId);
+            if (isSuccess) {
+                userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
+                keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
+            } else {
+                System.out.println("WTF");
+            }
+            // Проверка, есть ли у пользователя класс и картинка
+            if (!hasClassAndImage(chatId)) {
+                // Если нет, предложить выбор класса
+                sendClassSelection(chatId);
+            }
+        } else {
+            String text = "Вы на этапе регистрации. Нажмите кнопку /start";
+            sendMessage(chatId, text);
         }
         return isSuccess;
+    }
+
+    private void handleCommand(@NotNull Update update, long chatId) {
+        String command = update.getMessage().getText();
+        switch (command) {
+            case "Арена":
+                if (userPersons.get(chatId) != null) {
+                    System.out.println("TOze");
+                    startPvEBattle(chatId);
+                }
+                break;
+            case "О себе":
+                getInformationAboutPerson(chatId);
+                break;
+        }
     }
 
     private boolean registerUser(long chatId) {
@@ -149,18 +190,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void openMainMenu(long chatId) {
-        SendMessage message = new SendMessage();
-        message.setChatId(String.valueOf(chatId));
-        //message.setText("Основное меню:");
-        message.setReplyMarkup(Keyboards.getMainGameMenuKeyboard());
-
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void handleCallbackQuery(@NotNull CallbackQuery callbackQuery) {
         String callbackData = callbackQuery.getData();
@@ -172,36 +201,41 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         switch (callbackData) {
             case "select_wizard":
-                // Логика выбора класса "Колдун"
                 promt = "Отважный колдун, " + userName + ", с магическим посохом и в тканном доспехе.";
                 play_class = "wizard";
                 break;
             case "select_butcher":
-                // Логика выбора класса "Мясник"
                 promt = "Седовласый ведьмак, " + userName + ", из Ривии, с двумя мечами и доспехами школы волка.";
                 play_class = "butcher";
                 break;
             case "select_archer":
-                // Логика выбора класса "Лучник"
                 promt = "Отважный стрелок, " + userName + ", с дубовым луком и шелковой мантией.";
                 play_class = "archer";
                 break;
+            case "attack":
+            case "defend":
+                Battle(callbackQuery);
+                return;
+            //break;
             // Другие случаи
         }
         try {
+            System.out.println("Попытка создания фото");
+            sendMessage(chatId, "Пытаемся создать фото... " +
+                    "Приблизительное время ожидания ~ 20 секунд");
             image_gen.genFunction(api_key, secret_key, promt, 2);
             sendMessage(chatId, promt);
             picture = sendPhoto(
                     chatId,
-                    "TelegramBot\\TelegramBot\\src\\main\\java\\org\\telegram\\py_file\\image.jpg"
+                    "TelegramBot/TelegramBot/src/main/java/org/telegram/py_file/image.jpg"
             );
-            openMainMenu(chatId);
         } catch (Exception e) {
             // Обработка исключения
             picture = default_pic;
             e.printStackTrace();
         }
-
+        Person person = new Person(userName, chatId);
+        userPersons.put(chatId, person);
         db.userStatsPostFull(
                 chatId,
                 true,
@@ -250,34 +284,53 @@ public class TelegramBot extends TelegramLongPollingBot {
         return null; // Возвращаем null, если не удалось получить ID
     }
 
-//    private void handleCallbackQuery(@NotNull CallbackQuery callbackQuery) {
-//        String callbackData = callbackQuery.getData();
-//        Long chatId = callbackQuery.getMessage().getChatId();
-//
-//        switch (callbackData) {
-//            case "example_action":
-//                sendMessage(chatId, "Вы нажали на кнопку 'Пример'!");
-//                break;
-//            case "weapon":
-//                sendMessage(chatId, "Вы выбрали 'Оружие'.");
-//                break;
-//            case "eat":
-//                sendMessage(chatId, "Вы выбрали 'Поесть'.");
-//                break;
-//            case "improve":
-//                sendMessage(chatId, "Вы выбрали 'Прокачка'.");
-//                break;
-//            case "go_back":
-//                sendMessage(chatId, "Вы вернулись назад.");
-//                break;
-//            // Добавьте другие случаи для других кнопок
-//            default:
-//                sendMessage(chatId, "Неизвестное действие.");
-//                break;
-//        }
-//    }
+    private void startPvEBattle(long chatId) {
+        Person player = userPersons.get(chatId);
+        Enemy enemy = new Enemy("Goblin", "Goblin");
+        enemyPerson.put(chatId, enemy);
+        userStates.put(chatId, BotState.IN_BATTLE);
+        keyboardStates.put(chatId, KeyboardState.NONE);
+        sendBattleMessage(chatId, player, enemy);
+    }
 
 
+    private void Battle(@NotNull CallbackQuery callbackQuery) {
+        String callbackData = callbackQuery.getData();
+        Long chatId = callbackQuery.getMessage().getChatId();
+
+        Person player = userPersons.get(chatId);
+        Enemy enemy = enemyPerson.get(chatId);
+
+        switch (callbackData) {
+            case "attack":
+                int playerDamage = player.getDamage(enemy);
+                enemy.setCurrentHealthPoints(enemy.getCurrentHealthPoints() - playerDamage);
+                sendMessage(chatId, "Вы нанесли " + playerDamage + " урона " + enemy.getName() + ".");
+                if (enemy.getCurrentHealthPoints() <= 0) {
+                    int exp = 1000;
+                    sendMessage(chatId, enemy.getName() + " побежден!");
+                    sendMessage(chatId, "Начислено " + exp + " опыта");
+                    player.setCurrentExperiencePoints(player.getCurrentExperiencePoints() + exp);
+                    if (player.expUpdate()) {
+                        sendMessage(chatId,"Новый уровень! Текущий уровень равен " +
+                                player.getLevel());
+                    }
+                    userPersons.put(chatId, player);
+                    userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
+                    keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
+
+                } else {
+                    enemyTurn(chatId, player, enemy);
+                }
+                break;
+            case "defend":
+                // Реализуйте логику защиты
+                sendMessage(chatId, "Вы защищаетесь.");
+                enemyTurn(chatId, player, enemy);
+                break;
+
+        }
+    }
 
 
 //    private void handleCommand(@NotNull Update update, long chatId) {
@@ -316,12 +369,45 @@ public class TelegramBot extends TelegramLongPollingBot {
                         Твой интеллект: %s, твоя сила: %s
                         твоя ловкость: %s, твоя живучесть: %s
                         Очки здоровья: %s/%s
-                        Очки маны: %s/%s""",
+                        Очки маны: %s/%s
+                        Шкала опыта: %s/%s""",
                 person.getName(), person.getLevel(), person.getIntelligence(), person.getStrength(),
                 person.getAgility(), person.getVitality(), person.getCurrentHealthPoints(),
-                person.getMaxHealthPoints(), person.getCurrentManaPoints(), person.getMaxManaPoints());
+                person.getMaxHealthPoints(), person.getCurrentManaPoints(), person.getMaxManaPoints(),
+                person.getCurrentExperiencePoints(), person.getMaxExperiencePoints());
         userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
         sendMessage(chatId, text);
+    }
+
+    private void enemyTurn(long chatId, Person player, Enemy enemy) {
+        int enemyDamage = enemy.getDamage(player);
+        player.setCurrentHealthPoints(player.getCurrentHealthPoints() - enemyDamage);
+        sendMessage(chatId, enemy.getName() + " наносит " + enemyDamage + " урона вам.");
+        if (player.getCurrentHealthPoints() <= 0) {
+            sendMessage(chatId, "Вы побеждены!");
+            userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
+            keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
+        } else {
+            sendBattleMessage(chatId, player, enemy);
+        }
+    }
+
+    private void sendBattleMessage(long chatId, Person player, Enemy enemy) {
+        String battleLog = "Вы сражаетесь с " + enemy.getName() + "!\n";
+        battleLog += "Ваши HP: " + player.getCurrentHealthPoints() + "\n";
+        battleLog += enemy.getName() + " HP: " + enemy.getCurrentHealthPoints() + "\n";
+        battleLog += "Выберите действие:";
+
+        SendMessage message = new SendMessage();
+        message.setChatId(String.valueOf(chatId));
+        message.setText(battleLog);
+        message.setReplyMarkup(Keyboards.getBattleActionKeyboard());
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 
     private void sendMessage(long chatId, String text) {
@@ -334,7 +420,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         //message.setReplyMarkup(Keyboards.getInlineAboutMyself());
         //message.setReplyMarkup(Keyboards.getInlineStore());
         // //message.setReplyMarkup(Keyboards.getInlineMeditation());
-
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        switch (keyboardStates.get(chatId)) {
+            case REGISTRATION:
+                replyKeyboardMarkup = Keyboards.setRegistration();
+                break;
+            case MAIN_GAME_MENU:
+                replyKeyboardMarkup = Keyboards.getMainGameMenu();
+                break;
+            case NONE:
+                replyKeyboardMarkup = Keyboards.clearKeyboard();
+        }
+        message.setReplyMarkup(replyKeyboardMarkup);
         try {
             this.execute(message);
         } catch (TelegramApiException e) {
@@ -344,8 +441,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void notifyRegistrationResult(long chatId, boolean isSuccess) {
-        String messageText = isSuccess ? "Регистрация успешно пройдена!" : "Регистрация не пройдена!";
+        String messageText = userPersons.get(chatId) != null ?
+                "Регистрация успешно пройдена!" : "Регистрация не пройдена!";
+
         sendMessage(chatId, messageText);
+        userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
     }
 
 

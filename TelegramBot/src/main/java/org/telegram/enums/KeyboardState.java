@@ -1,5 +1,7 @@
 package org.telegram.enums;
 
 public enum KeyboardState {
-    MAIN_GAME_MENU
+    NONE,
+    MAIN_GAME_MENU,
+    REGISTRATION
 }

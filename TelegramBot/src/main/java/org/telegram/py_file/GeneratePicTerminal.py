@@ -1,7 +1,12 @@
+try:
+    import requests
+except ImportError:
+    print("Библиотека 'requests' не установлена. Устанавливаем...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
+    import requests
 import json
 import time
 import base64
-import requests
 import argparse
 
 class Text2ImageAPI:
@@ -62,10 +67,13 @@ if __name__ == '__main__':
     uuid = api.generate(args.prompt, model_id, style=args.style)
     images = api.check_generation(uuid)
 
-    image_base64 = images[0]
-    image_data = base64.b64decode(image_base64)
+    if images is None:
+        print("Image generation failed or timed out.")
+    else:
+        image_base64 = images[0]
+        image_data = base64.b64decode(image_base64)
 
-    with open("image.jpg", "wb") as file:
-        file.write(image_data)
+        with open("image.jpg", "wb") as file:
+            file.write(image_data)
 
     print("Изображение загружено!")
