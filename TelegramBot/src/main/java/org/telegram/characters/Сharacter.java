@@ -2,7 +2,7 @@ package org.telegram.characters;
 
 public class Сharacter {
     protected String name;
-    protected byte level;
+    protected int level;
     protected boolean isAlive;
 
     protected int strength; //attack
@@ -30,11 +30,11 @@ public class Сharacter {
         this.name = name;
     }
 
-    public byte getLevel() {
+    public int getLevel() {
         return level;
     }
 
-    public void setLevel(byte level) {
+    public void setLevel(int level) {
         this.level = level;
     }
 

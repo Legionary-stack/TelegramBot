@@ -1,6 +1,7 @@
 package org.telegram;
 
 import org.telegram.enums.BotState;
+import org.telegram.enums.KeyboardState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,22 +77,25 @@ public class DataBase {
         return id;
     }
 
-    public BotState getStateByChatId(long chatId) {
-        //TODO Реализуй стейты как их брать то емае
-        return null;
-    }
 
     public void userStatsPostFull(long chatId, boolean add,
                                   String userName, Integer level, Integer currentHealthPoints,
                                   Integer currentManaPoints, Integer currentExpPoints, Integer strength,
                                   Integer intelligence, Integer agility, Integer vitality,
-                                  String play_class, String pic) {
-
+                                  String play_class, String pic,
+                                  KeyboardState keyboardState, BotState botState) {
+        //TODO
+        //ЗДЕСЬ ОШИБКА! ВОЗНИКАЕТ ПРОБЛЕМА С chatId и userId надо решить их а так норм
+        
         Integer thisObjUserId = getIdByChatId(chatId);
         String sql = "INSERT INTO userStats(userId, userName, level, currentHealthPoints, currentManaPoints, " +
-                "currentExpPoints, strength, intelligence, agility, vitality, class, pic) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "currentExpPoints, strength, intelligence, agility, vitality, class, pic," +
+                "keyboardState, botState) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        if (thisObjUserId == null) {
+            System.out.println("UserId не найден для chatId: " + chatId);
 
+        }
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -108,6 +112,8 @@ public class DataBase {
             pstmt.setInt(10, vitality);
             pstmt.setString(11, play_class);
             pstmt.setString(12, pic);
+            pstmt.setString(13, keyboardState.name());
+            pstmt.setString(14, botState.name());
 
             pstmt.executeUpdate();
             System.out.println("Запись добавлена в таблицу userStats.");
@@ -217,6 +223,8 @@ public class DataBase {
                 userInfo.put("vitality", rs.getInt("vitality"));
                 userInfo.put("class", rs.getString("class"));
                 userInfo.put("pic", rs.getString("pic"));
+                userInfo.put("keyboardState", rs.getString("keyboardState"));
+                userInfo.put("botState", rs.getString("botState"));
             } else {
                 System.out.println("Запись не найдена для userId: " + thisObjUserId);
                 return null; // Возвращаем null, если запись не найдена
@@ -234,7 +242,7 @@ public class DataBase {
     private boolean isValidColumn(String column) {
         // Список допустимых имен столбцов
         String[] validColumns = {"userName", "level", "currentHealthPoints", "currentManaPoints", "currentExpPoints",
-                "strength", "intelligence", "agility", "vitality", "class", "pic"};
+                "strength", "intelligence", "agility", "vitality", "class", "pic", "keyboardState", "botState",};
         for (String validColumn : validColumns) {
             if (validColumn.equals(column)) {
                 return true;
@@ -289,7 +297,7 @@ public class DataBase {
                 " currentExpPoints INTEGER NOT NULL, strength INTEGER NOT NULL," +
                 " intelligence INTEGER NOT NULL, agility INTEGER NOT NULL," +
                 " vitality INTEGER NOT NULL," +
-                " class TEXT NOT NULL, pic TEXT)";
+                " class TEXT NOT NULL, pic TEXT, keyboardState TEXT, botState TEXT)";
 
         try (Connection conn = db.connect()) {
             try (Statement stmt = conn.createStatement()) {

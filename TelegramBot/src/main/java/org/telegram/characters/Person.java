@@ -1,7 +1,11 @@
 package org.telegram.characters;
 
 import org.jetbrains.annotations.NotNull;
+import org.telegram.DataBase;
+import org.telegram.enums.BotState;
+import org.telegram.enums.KeyboardState;
 
+import java.util.Map;
 import java.util.Random;
 
 public class Person extends Сharacter {
@@ -9,11 +13,14 @@ public class Person extends Сharacter {
     private int skillPoints;
     private int currentExperiencePoints;
     private int maxExperiencePoints;
+    private String picture;
+    private String playClass;
 
-
-    public Person(String name, long chatId) {
+    public Person(String name, long chatId, String picture, String playClass) {
         super(name);
         this.chatId = chatId;
+        this.picture = picture;
+        this.playClass = playClass;
         strength = 15;
         intelligence = 15;
         agility = 15;
@@ -162,6 +169,51 @@ public class Person extends Сharacter {
                 break;
         }
         return true;
+    }
+
+    public void loadFromDatabase(DataBase db, long chatId) {
+        //TODO
+        //По возможности изменить и добавить новые слоты
+
+        System.out.println("PErson" + chatId);
+        Map<String, Object> userInfo = db.userStatsGetInfo(chatId);
+        if (userInfo != null) {
+            this.setChatId(chatId);
+            this.setName((String) userInfo.get("userName"));
+            this.setLevel((int) userInfo.get("level"));
+            this.setCurrentHealthPoints((int) userInfo.get("currentHealthPoints"));
+            this.setCurrentManaPoints((int) userInfo.get("currentManaPoints"));
+            this.setCurrentExperiencePoints((int) userInfo.get("currentExpPoints"));
+            this.setStrength((int) userInfo.get("strength"));
+            this.setIntelligence((int) userInfo.get("intelligence"));
+            this.setAgility((int) userInfo.get("agility"));
+            this.setVitality((int) userInfo.get("vitality"));
+            this.setPlayClass((String) userInfo.get("class"));
+            this.setPicture((String) userInfo.get("picture"));
+        }
+    }
+
+    public void saveToDatabase(DataBase db, long chatId, KeyboardState keyboardState, BotState botState) {
+        db.userStatsPostFull(chatId, true, getName(), getLevel(), getCurrentHealthPoints(),
+                getCurrentManaPoints(), getCurrentExperiencePoints(), getStrength(), getIntelligence(),
+                getAgility(), getVitality(), getPlayClass(), getPicture(), keyboardState, botState);
+    }
+
+
+    public String getPlayClass() {
+        return playClass;
+    }
+
+    public void setPlayClass(String playClass) {
+        this.playClass = playClass;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 }
 
