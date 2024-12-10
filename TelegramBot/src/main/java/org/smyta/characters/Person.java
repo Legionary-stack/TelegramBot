@@ -15,6 +15,7 @@ public class Person extends Сharacter {
     private int maxExperiencePoints;
     private String picture;
     private String playClass;
+    private final byte growFactor = 10;
 
     public Person(String name, long chatId, String picture, String playClass) {
         super(name);
@@ -31,8 +32,8 @@ public class Person extends Сharacter {
     }
 
     private void riseUpdate() {
-        maxHealthPoints = vitality * 10;
-        maxManaPoints = intelligence * 10;
+        maxHealthPoints = vitality * growFactor;
+        maxManaPoints = intelligence * growFactor;
         currentHealthPoints = maxHealthPoints;
         currentManaPoints = maxManaPoints;
         maxExperiencePoints = calculateMaxExperiencePoints();
@@ -190,13 +191,18 @@ public class Person extends Сharacter {
             this.setVitality((int) userInfo.get("vitality"));
             this.setPlayClass((String) userInfo.get("class"));
             this.setPicture((String) userInfo.get("pic"));
+            this.setSkillPoints((int) userInfo.get("skillPoints"));
+            maxHealthPoints = vitality * growFactor;
+            maxManaPoints = intelligence * growFactor;
+            maxExperiencePoints = calculateMaxExperiencePoints();
         }
     }
 
     public void saveToDatabase(@NotNull DataBase db, long chatId, KeyboardState keyboardState, BotState botState) {
         db.userStatsPostFull(chatId, true, getName(), getLevel(), getCurrentHealthPoints(),
                 getCurrentManaPoints(), getCurrentExperiencePoints(), getStrength(), getIntelligence(),
-                getAgility(), getVitality(), getPlayClass(), getPicture(), keyboardState, botState);
+                getAgility(), getVitality(), getPlayClass(), getPicture(), keyboardState, botState,
+                skillPoints);
     }
 
 

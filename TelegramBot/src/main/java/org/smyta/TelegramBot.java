@@ -86,6 +86,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             message.setChatId(String.valueOf(chatId));
             System.out.print(db.getIdByChatId(chatId));
             System.out.println(message.getText());
+            if (userPersons.get(chatId) != null && db.getIdByChatId(chatId) != null) {
+                userPersons.get(chatId).saveToDatabase(db, chatId, currentKeyboardState,
+                        currentBotState);
+            }
             if (db.getIdByChatId(chatId) != null) {
                 Person person = new Person(null, chatId, null, null);
                 person.loadFromDatabase(db, chatId);
@@ -100,9 +104,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 currentKeyboardState = KeyboardState.REGISTRATION;
 
             }
-            if (userPersons.get(chatId) != null && db.getIdByChatId(chatId) != null) {
-                userPersons.get(chatId).saveToDatabase(db, chatId, currentKeyboardState, currentBotState);
-            }
+
             // userStates.putIfAbsent(chatId, BotState.REGISTRATION);
             // keyboardStates.putIfAbsent(chatId, KeyboardState.REGISTRATION);
             System.out.println(currentBotState);
@@ -204,6 +206,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 currentKeyboardState = KeyboardState.STAT_UPGRADE;
                 sendMessage(chatId, "Инвентарь пока не реализован," +
                         "но вы можете улучшить статы");
+                currentKeyboardState = KeyboardState.MAIN_GAME_MENU;
                 break;
         }
     }
@@ -327,7 +330,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             sendMessage(chatId, promt);
             picture = sendPhoto(
                     chatId,
-                    "TelegramBot/TelegramBot/src/main/java/org/telegram/py_file/image.jpg"
+                    "TelegramBot/TelegramBot/src/main/java/org/smyta/py_file/image.jpg"
             );
         } catch (Exception e) {
             // Обработка исключения
@@ -351,7 +354,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 playClass,
                 picture,
                 KeyboardState.MAIN_GAME_MENU,
-                BotState.WAITING_FOR_COMMAND
+                BotState.WAITING_FOR_COMMAND,
+                person.getSkillPoints()
         );
 
     }
@@ -417,6 +421,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                 enemy.setCurrentHealthPoints(enemy.getCurrentHealthPoints() - playerDamage);
                 sendMessage(chatId, "Вы нанесли " + playerDamage + " урона " + enemy.getName() + ".");
                 if (enemy.getCurrentHealthPoints() <= 0) {
+                    db.userStatsPathOnePunch(chatId,
+                            "keyboardState", KeyboardState.MAIN_GAME_MENU);
+                    db.userStatsPathOnePunch(chatId,
+                            "botState", BotState.WAITING_FOR_COMMAND);
+                    currentKeyboardState = KeyboardState.MAIN_GAME_MENU;
+                    currentBotState = BotState.WAITING_FOR_COMMAND;
                     int exp = 1000;
                     sendMessage(chatId, enemy.getName() + " побежден!");
                     sendMessage(chatId, "Начислено " + exp + " опыта");
@@ -426,10 +436,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                                 player.getLevel());
                     }
                     userPersons.put(chatId, player);
-                    db.userStatsPathOnePunch(chatId,
-                            "keyboardState", KeyboardState.MAIN_GAME_MENU);
-                    db.userStatsPathOnePunch(chatId,
-                            "botState", BotState.WAITING_FOR_COMMAND);
 
                 } else {
                     enemyTurn(chatId, player, enemy);

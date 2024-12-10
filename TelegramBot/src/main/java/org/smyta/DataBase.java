@@ -83,7 +83,8 @@ public class DataBase {
                                   Integer currentManaPoints, Integer currentExpPoints, Integer strength,
                                   Integer intelligence, Integer agility, Integer vitality,
                                   String play_class, String pic,
-                                  KeyboardState keyboardState, BotState botState) {
+                                  KeyboardState keyboardState, BotState botState,
+                                  Integer skillPoints) {
 
         Integer thisObjUserId = getIdByChatId(chatId);
         if (thisObjUserId == null) {
@@ -93,8 +94,8 @@ public class DataBase {
 
         String sql = "INSERT OR REPLACE INTO userStats(userId, userName, level, currentHealthPoints, currentManaPoints, " +
                 "currentExpPoints, strength, intelligence, agility, vitality, class, pic, " +
-                "keyboardState, botState) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "keyboardState, botState, skillPoints) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -114,6 +115,7 @@ public class DataBase {
             pstmt.setString(12, pic);
             pstmt.setString(13, keyboardState.name());
             pstmt.setString(14, botState.name());
+            pstmt.setInt(15, skillPoints);
 
             pstmt.executeUpdate();
             System.out.println("Запись добавлена или обновлена в таблице userStats.");
@@ -225,6 +227,7 @@ public class DataBase {
                 userInfo.put("pic", rs.getString("pic"));
                 userInfo.put("keyboardState", rs.getString("keyboardState"));
                 userInfo.put("botState", rs.getString("botState"));
+                userInfo.put("skillPoints", rs.getInt("skillPoints"));
             } else {
                 System.out.println("Запись не найдена для userId: " + thisObjUserId);
                 return null; // Возвращаем null, если запись не найдена
@@ -244,7 +247,7 @@ public class DataBase {
         String[] validColumns = {"userName", "level", "currentHealthPoints",
                 "currentManaPoints", "currentExpPoints",
                 "strength", "intelligence", "agility",
-                "vitality", "class", "pic", "keyboardState", "botState"};
+                "vitality", "class", "pic", "keyboardState", "botState, skillPoints"};
         for (String validColumn : validColumns) {
             if (validColumn.equals(column)) {
                 return true;
@@ -299,7 +302,8 @@ public class DataBase {
                 " currentExpPoints INTEGER NOT NULL, strength INTEGER NOT NULL," +
                 " intelligence INTEGER NOT NULL, agility INTEGER NOT NULL," +
                 " vitality INTEGER NOT NULL," +
-                " class TEXT NOT NULL, pic TEXT, keyboardState TEXT, botState TEXT)";
+                " class TEXT NOT NULL, pic TEXT, keyboardState TEXT, botState TEXT," +
+                "skillPoints INTEGER)";
 
         try (Connection conn = db.connect()) {
             try (Statement stmt = conn.createStatement()) {
