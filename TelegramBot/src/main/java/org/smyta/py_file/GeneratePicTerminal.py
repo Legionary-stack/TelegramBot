@@ -9,6 +9,7 @@ import time
 import base64
 import argparse
 
+
 class Text2ImageAPI:
     def __init__(self, url, api_key, secret_key):
         self.URL = url
@@ -52,6 +53,7 @@ class Text2ImageAPI:
 
             attempts -= 1
             time.sleep(delay)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate image from text.')

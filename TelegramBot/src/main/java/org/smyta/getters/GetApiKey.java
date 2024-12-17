@@ -11,7 +11,7 @@ import java.nio.file.Path;
 
 public class GetApiKey {
     public static @NotNull String getApiKey() throws IOException {
-        Path tokenPath = Path.of("TelegramBot/TelegramBot/token/api_key.txt");
-        return Files.readString(tokenPath).trim();
+        Path apiKeyPath = Path.of("TelegramBot/TelegramBot/token/api_key.txt");
+        return Files.readString(apiKeyPath).trim();
     }
 }

@@ -16,7 +16,6 @@ public class Main {
         telegramBotsApi.registerBot(new TelegramBot());
 
         System.out.println("BOT is running NOW");
-        //DataBase db = new DataBase();
-        //db.connect();
+
     }
 }

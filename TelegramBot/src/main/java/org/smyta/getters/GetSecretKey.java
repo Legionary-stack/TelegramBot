@@ -11,7 +11,7 @@ import java.nio.file.Path;
 
 public class GetSecretKey {
     public static @NotNull String getSecret() throws IOException {
-        Path tokenPath = Path.of("TelegramBot/TelegramBot/token/secret_key.txt");
-        return Files.readString(tokenPath).trim();
+        Path secretKeyPath = Path.of("TelegramBot/TelegramBot/token/secret_key.txt");
+        return Files.readString(secretKeyPath).trim();
     }
 }

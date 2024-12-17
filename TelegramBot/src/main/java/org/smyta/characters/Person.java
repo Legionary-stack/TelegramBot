@@ -176,7 +176,6 @@ public class Person extends Сharacter {
         //TODO
         //По возможности изменить и добавить новые слоты
 
-        System.out.println("PErson" + chatId);
         Map<String, Object> userInfo = db.userStatsGetInfo(chatId);
         if (userInfo != null) {
             this.setChatId(chatId);

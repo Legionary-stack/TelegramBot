@@ -81,11 +81,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(@NotNull Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
-            //String text = update.getMessage().getText();
             SendMessage message = new SendMessage();
             message.setChatId(String.valueOf(chatId));
-            System.out.print(db.getIdByChatId(chatId));
-            System.out.println(message.getText());
+            //System.out.print(db.getIdByChatId(chatId));
+            // System.out.println(message.getText());
             if (userPersons.get(chatId) != null && db.getIdByChatId(chatId) != null) {
                 userPersons.get(chatId).saveToDatabase(db, chatId, currentKeyboardState,
                         currentBotState);
@@ -99,7 +98,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 currentKeyboardState = KeyboardState.valueOf(
                         (String) db.userStatsGetInfo(chatId).get("keyboardState"));
             } else {
-                System.out.println("HEY");
                 currentBotState = BotState.REGISTRATION;
                 currentKeyboardState = KeyboardState.REGISTRATION;
 
@@ -117,9 +115,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             } else {
                 switch (currentBotState) {
                     case REGISTRATION:
-                        System.out.println("Zashlo");
                         isSuccess = userRegistration(update, chatId);
-
                         break;
                     case WAITING_FOR_COMMAND:
                         handleCommand(update, chatId);
@@ -147,18 +143,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         boolean isSuccess = false;
 
         if (command.equals("/start")) {
-            //System.out.println("ADAD");
             isSuccess = registerUser(chatId);
             if (isSuccess) {
-                System.out.println("REG done");
                 //db.userStatsPathOnePunch(chatId,
                 //       "keyboardState", KeyboardState.MAIN_GAME_MENU);
                 //db.userStatsPathOnePunch(chatId,
                 //      "botState", BotState.WAITING_FOR_COMMAND);
                 //userStates.put(chatId, BotState.WAITING_FOR_COMMAND);
                 // keyboardStates.put(chatId, KeyboardState.MAIN_GAME_MENU);
-            } else {
-                //System.out.println("WTF");
             }
             // Проверка, есть ли у пользователя класс и картинка
             if (!hasClassAndImage(chatId)) {
@@ -180,7 +172,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         switch (command) {
             case "Арена":
                 if (db.getIdByChatId(chatId) != null) {
-                    System.out.println("TOze");
                     startPvEBattle(chatId);
                 }
                 break;
@@ -411,9 +402,16 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void Battle(@NotNull CallbackQuery callbackQuery) {
         String callbackData = callbackQuery.getData();
         Long chatId = callbackQuery.getMessage().getChatId();
-
+        Enemy enemy;
         Person player = userPersons.get(chatId);
-        Enemy enemy = enemyPerson.get(chatId);
+
+        if (enemyPerson.get(chatId) == null) {
+            //TODO
+            // изменить бы эту реализацию
+            enemy = new Enemy("Goblin", "Goblin");
+            sendMessage(chatId, "Противник восстановил силы!");
+        } else
+            enemy = enemyPerson.get(chatId);
 
         switch (callbackData) {
             case "attack":
@@ -558,7 +556,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             this.execute(message);
         } catch (TelegramApiException e) {
-            System.out.println("oshibks");
             e.printStackTrace();
         }
     }
